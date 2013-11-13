@@ -21,6 +21,7 @@ CGFloat kDefaultTabBarHeight = 50.0;
 @synthesize viewControllers=_viewControllers;
 @synthesize selectedViewController=_selectedViewController;
 @synthesize selectedIndex=_selectedIndex;
+@synthesize tabBar=_tabBar;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -48,8 +49,6 @@ CGFloat kDefaultTabBarHeight = 50.0;
     self.container.opaque = NO;
     self.container.clipsToBounds = YES;
     [self.view addSubview:self.container];
-    
-    self.tabBar = [[[[self class] tabBarClass] alloc] init];
     [self.view addSubview:self.tabBar];
 }
 
@@ -65,15 +64,9 @@ CGFloat kDefaultTabBarHeight = 50.0;
         [self.view addSubview:self.container];
     }
     
-    if (!self.tabBar) {
-        self.tabBar = [[[[self class] tabBarClass] alloc] init];
-        [self.view addSubview:self.tabBar];
-    }
-    
-    self.tabBar.delegate = self;
-    self.tabBar.dataSource = self;
-    
+    [self.view bringSubviewToFront:self.tabBar];
     [self updateLayout];
+    
     [self showViewController:self.viewControllers[0] animated:NO];
 }
 
@@ -177,6 +170,16 @@ CGFloat kDefaultTabBarHeight = 50.0;
 
 - (void)setSelectedIndex:(NSInteger)selectedIndex {
     [self showViewController:self.viewControllers[selectedIndex] animated:NO];
+}
+
+- (FYTabBar *)tabBar {
+    if (!_tabBar) {
+        _tabBar = [[[[self class] tabBarClass] alloc] init];
+        [self.view addSubview:_tabBar];
+        _tabBar.delegate = self;
+        _tabBar.dataSource = self;
+    }
+    return _tabBar;
 }
 
 #pragma mark - Private methods
