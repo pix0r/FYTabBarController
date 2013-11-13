@@ -1,0 +1,10 @@
+PODS:
+  - MGImageUtilities (0.0.1)
+
+DEPENDENCIES:
+  - MGImageUtilities (~> 0.0.1)
+
+SPEC CHECKSUMS:
+  MGImageUtilities: ab3580f2161b10f8a41331baea87aaafbd688950
+
+COCOAPODS: 0.27.1
