@@ -66,7 +66,6 @@
     for (int tabIdx = 0; tabIdx < _numberOfTabs; tabIdx++) {
         UIView *tabView = [self viewForTabAtIndex:tabIdx];
         tabView.frame = tabFrame;
-        NSLog(@"set tab %d frame to %@", tabIdx, NSStringFromCGRect(tabFrame));
         tabFrame.origin.x += tabWidth;
         [tabViews addObject:tabView];
         [self addSubview:tabView];

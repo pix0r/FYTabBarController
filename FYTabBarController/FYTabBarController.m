@@ -9,12 +9,17 @@
 #import "FYTabBarController.h"
 #import "FYTabBar.h"
 
-@interface FYTabBarController ()
+@interface FYTabBarController () {
+    NSArray *_previousViewControllers;
+}
 - (void)updateTabBar;
 - (void)updateLayout;
+- (void)showTabBarAnimated:(BOOL)animated directionIsPush:(BOOL)directionIsPush;
+- (void)hideTabBarAnimated:(BOOL)animated directionIsPush:(BOOL)directionIsPush;
 @end
 
-CGFloat kDefaultTabBarHeight = 50.0;
+const static CGFloat kDefaultTabBarHeight = 50.0;
+const static CGFloat kPushAnimationDuration = 0.25;
 
 @implementation FYTabBarController
 
@@ -150,6 +155,15 @@ CGFloat kDefaultTabBarHeight = 50.0;
     if (viewControllers != _viewControllers) {
         [self willChangeValueForKey:@"viewControllers"];
         _viewControllers = viewControllers;
+        
+        // Subscribe to delegate notifications of any UINavigationControllers
+        for (UIViewController *vc in viewControllers) {
+            if ([vc isKindOfClass:[UINavigationController class]]) {
+                UINavigationController *navVC = (UINavigationController *)vc;
+                navVC.delegate = self;
+            }
+        }
+        
         [self updateTabBar];
         [self didChangeValueForKey:@"viewControllers"];
     }
@@ -196,6 +210,34 @@ CGFloat kDefaultTabBarHeight = 50.0;
     self.tabBar.frame = tabFrame;
 }
 
+- (void)showTabBarAnimated:(BOOL)animated directionIsPush:(BOOL)directionIsPush {
+    NSTimeInterval duration = animated ? kPushAnimationDuration : 0;
+    
+    // First move tab bar out of frame
+    CGFloat xPos = directionIsPush ? self.tabBar.bounds.size.width : -1.0 * self.tabBar.bounds.size.width;
+    self.tabBar.transform = CGAffineTransformMakeTranslation(xPos, 0);
+    self.tabBar.hidden = NO;
+    
+    [UIView animateWithDuration:duration animations:^{
+        // Animate tab bar back onto frame
+        self.tabBar.transform = CGAffineTransformIdentity;
+    } completion:^(BOOL finished) {
+    }];
+}
+
+- (void)hideTabBarAnimated:(BOOL)animated directionIsPush:(BOOL)directionIsPush {
+    NSTimeInterval duration = animated ? kPushAnimationDuration : 0;
+    
+    [UIView animateWithDuration:duration animations:^{
+        // Move tab bar off frame
+        CGFloat xPos = directionIsPush ? -1.0 * self.tabBar.bounds.size.width : self.tabBar.bounds.size.width;
+        self.tabBar.transform = CGAffineTransformMakeTranslation(xPos, 0);
+    } completion:^(BOOL finished) {
+        self.tabBar.hidden = YES;
+        self.tabBar.transform = CGAffineTransformIdentity;
+    }];
+}
+
 #pragma mark - UITabBarDataSource
 
 - (NSInteger)numberOfTabsInTabBar:(FYTabBar *)tabBar {
@@ -225,9 +267,52 @@ CGFloat kDefaultTabBarHeight = 50.0;
 }
 
 - (void)tabBar:(FYTabBar *)tabBar didSelectTabAtIndex:(NSInteger)tabIndex {
+    if (_selectedIndex == tabIndex) {
+        if ([self.selectedViewController isKindOfClass:[UINavigationController class]]) {
+            // Pop to root
+            UINavigationController *navVC = (UINavigationController *)self.selectedViewController;
+            [navVC popToRootViewControllerAnimated:YES];
+        }
+    }
     self.selectedIndex = tabIndex;
     if (self.delegate && [self.delegate respondsToSelector:@selector(tabBarController:didSelectViewController:)]) {
         [self.delegate tabBarController:self didSelectViewController:self.viewControllers[tabIndex]];
+    }
+}
+
+#pragma mark - UINavigationControllerDelegate
+
+// Shamelessly stolen from  https://github.com/alikaragoz/AKTabBarController
+// See license: https://github.com/alikaragoz/AKTabBarController/blob/master/LICENSE
+// Reference: https://github.com/alikaragoz/AKTabBarController/blob/master/AKTabBarController/AKTabBarController.m#L198
+
+- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    if (!_previousViewControllers) {
+        _previousViewControllers = [navigationController viewControllers];
+    }
+    
+    // We detect is the view as been push or popped
+    BOOL isPushed;
+    
+    if ([_previousViewControllers count] <= [[navigationController viewControllers] count]) {
+        isPushed = YES;
+    } else {
+        isPushed = NO;
+    }
+    
+    // Logic to know when to show or hide the tab bar
+    BOOL isPreviousHidden, isNextHidden;
+    
+    isPreviousHidden = [[_previousViewControllers lastObject] hidesBottomBarWhenPushed];
+    isNextHidden = [viewController hidesBottomBarWhenPushed];
+    
+    _previousViewControllers = [navigationController viewControllers];
+    
+    if (!isPreviousHidden && isNextHidden) {
+        [self hideTabBarAnimated:animated directionIsPush:isPushed];
+    } else if (isPreviousHidden && !isNextHidden) {
+        [self showTabBarAnimated:animated directionIsPush:isPushed];
     }
 }
 

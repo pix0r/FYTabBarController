@@ -17,7 +17,7 @@
 - (void)tabBarController:(FYTabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController;
 @end
 
-@interface FYTabBarController : UIViewController <FYTabBarDataSource, FYTabBarDelegate>
+@interface FYTabBarController : UIViewController <FYTabBarDataSource, FYTabBarDelegate, UINavigationControllerDelegate>
 
 @property (nonatomic, strong) id<FYTabBarControllerDelegate> delegate;
 
