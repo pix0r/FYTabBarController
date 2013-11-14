@@ -204,7 +204,8 @@ const static CGFloat kPushAnimationDuration = 0.25;
 
 - (void)updateLayout {
     CGRect bounds = self.view.bounds;
-    CGRect containerFrame = CGRectMake(0, 0, bounds.size.width, bounds.size.height - self.tabBarHeight);
+    CGRect containerFrame = bounds;
+    containerFrame = bounds;
     self.container.frame = containerFrame;
     CGRect tabFrame = CGRectMake(0, bounds.size.height - self.tabBarHeight, bounds.size.width, self.tabBarHeight);
     self.tabBar.frame = tabFrame;
