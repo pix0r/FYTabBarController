@@ -8,6 +8,7 @@
 
 #import "FYTabBarController.h"
 #import "FYTabBar.h"
+#import "UINavigationController+FYTabBarController.h"
 
 @interface FYTabBarController () {
     NSArray *_previousViewControllers;
@@ -289,6 +290,9 @@ const static CGFloat kPushAnimationDuration = 0.25;
 
 - (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
+    // Ensure nav controller has reference to this tab bar controller
+    navigationController.customTabBarController = self;
+    
     if (!_previousViewControllers) {
         _previousViewControllers = [navigationController viewControllers];
     }

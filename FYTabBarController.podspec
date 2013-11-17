@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "FYTabBarController"
-  s.version      = "0.0.1"
+  s.version      = "0.0.2"
   s.summary      = "A very simple, extensible UITabBarController replacement."
   s.homepage     = "https://github.com/pix0r/FYTabBarController"
 
